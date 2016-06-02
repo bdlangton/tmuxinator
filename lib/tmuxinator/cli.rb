@@ -32,6 +32,10 @@ module Tmuxinator
       version: "Display installed tmuxinator version",
       doctor: "Look for problems in your configuration",
       list: "Lists all tmuxinator projects"
+      list: "Lists all tmuxinator projects",
+      append: <<-DESC,
+        Append the windows in the given project to a session of the same name
+      DESC
     }.freeze
 
     # For future reference: due to how tmuxinator currently consumes
@@ -189,7 +193,8 @@ module Tmuxinator
           force_attach: attach,
           force_detach: detach,
           name: project_options[:name],
-          project_config: project_options[:project_config]
+          project_config: project_options[:project_config],
+          append: project_options[:append]
         }
 
         begin
@@ -234,6 +239,26 @@ module Tmuxinator
         project_config: options["project-config"]
       }
 
+      project = create_project(params)
+      render_project(project)
+    end
+
+    desc "append [PROJECT] [ARGS]", COMMANDS[:append]
+    map "a" => :append
+    method_option :attach, type: :boolean,
+                           aliases: "-a",
+                           desc: "Attach to tmux session after creation."
+    method_option :name, aliases: "-n",
+                         desc: "Give the session a different name"
+
+    def append(name, *args)
+      params = {
+        name: name,
+        custom_name: options[:name],
+        attach: options[:attach],
+        args: args,
+        append: true
+      }
       project = create_project(params)
       render_project(project)
     end
